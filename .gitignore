@@ -1,0 +1,63 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+.streamlit/secrets.toml
+
+# Python environment and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Local coding-agent installations
+.code/
+.codex/
+.claude/
+.agents/
+.cursor/
+.vscode/
+.idea/
+AGENTS.md
+CLAUDE.md
+node_modules/
+
+# Graphify local outputs
+graphify-out/
+graph.json
+.graphify_learning.json
+
+# Generated Obsidian knowledge graph
+Framework-KG/
+
+# Runtime and customer data
+documents/inbox/*
+!documents/inbox/.gitkeep
+generated/*
+!generated/.gitkeep
+runtime/**
+!runtime/**/
+!runtime/**/.gitkeep
+
+# Databases, models and logs
+*.db
+*.sqlite
+*.sqlite3
+*.log
+.chroma/
+model-cache/
+
+# Operating system
+Thumbs.db
+Desktop.ini
+.DS_Store

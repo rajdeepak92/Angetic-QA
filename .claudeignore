@@ -1,0 +1,6 @@
+graphify-out/
+Framework-KG/
+.venv/
+runtime/
+generated/
+documents/inbox/

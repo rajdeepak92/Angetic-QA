@@ -108,7 +108,8 @@ GraphRAG-Agents/
 │       │   ├── path_policy.py
 │       │   ├── retrieval.py
 │       │   ├── run_coordinator.py
-│       │   └── source_ledger.py
+│       │   ├── source_ledger.py
+│       │   └── system_health.py             # local/provider readiness without network side effects
 │       ├── workflows/
 │       │   ├── __init__.py
 │       │   ├── events.py

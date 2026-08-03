@@ -9,11 +9,11 @@
 | Field | Value |
 |---|---|
 | Build mode | `GREENFIELD / WINDOWS / LOCAL UI` |
-| Product features | `1 / 11 DONE` |
-| Current feature | `F-002 READY` |
+| Product features | `2 / 11 DONE` |
+| Current feature | `F-003 READY` |
 | Application entrypoint | `src/multi_agentic_graph_rag/ui/app.py` |
-| Last record | `CHG-001` |
-| Updated | `2026-08-03T22:55:10+05:30` |
+| Last record | `CHG-002` |
+| Updated | `2026-08-04T04:37:43+05:30` |
 
 Update this snapshot only after appending a record; never rewrite history to match the snapshot.
 
@@ -78,6 +78,49 @@ Update this snapshot only after appending a record; never rewrite history to mat
 - Graphify after: `NOT_RUN` — the task explicitly required query-only Graphify use and prohibited updates.
 - Documentation: `README.md`, `coding-agent-context/project-overview.md`, and this tracker synchronized.
 - Follow-up/blocker: `F-002` is the next explicitly declared READY feature; no blocker.
+- Git: `Human-owned`
+
+---
+
+## CHG-002 — F-002: configuration, provider readiness, and health UI
+
+- Timestamp: `2026-08-04T04:37:43+05:30`
+- Result: `DONE`
+- Request: Implement strict configuration, the approved model catalog, capability validation,
+  Settings/System Health pages, unique-provider credential handling, clearing, and connection checks.
+- Status: `F-002 READY -> DONE`; `F-003 PLANNED -> READY`
+- Graphify before: Read-only canonical query for project contracts, architecture authority, scope,
+  stage, and tracker navigation; current feature status was verified from physical Markdown files.
+- Files changed: `.env.example`, `config.json`, `README.md`, `pyproject.toml`, `uv.lock`,
+  `coding-agent-context/{layout,project-overview,progress-tracker}.md`,
+  `src/multi_agentic_graph_rag/{bootstrap.py,adapters/,config/,domain/,ports/,services/}`,
+  `src/multi_agentic_graph_rag/ui/{app.py,navigation.py,pages/health.py,pages/settings.py,components/,state/}`,
+  `tests/contract/models/test_connection_checks.py`, `tests/unit/config/test_settings.py`,
+  `tests/unit/services/test_system_health.py`, and
+  `tests/unit/ui/{test_navigation,test_provider_pages}.py`.
+- UI behavior: Settings renders capability-safe provider/model/deployment controls, batches missing
+  unique-provider password inputs in one native dialog, clears session secrets/results, and runs
+  explicit sanitized connection probes; System Health renders local, cache, credential, and last-probe readiness.
+- Contracts/data: Strict frozen Pydantic settings with `extra="forbid"`; session settings override OS
+  environment values, which override tracked non-secret `config.json`; no canonical store, schema,
+  checkpoint, cache, or generated artifact was added.
+- Security: Credentials use redacted `SecretStr` values, remain only in Streamlit Session State, are
+  never logged/persisted/cached/checkpointed, and password widget keys are removed by explicit clearing;
+  provider exceptions and response bodies never reach connection results.
+- Ponytail decision: Reused native Streamlit, Pydantic, and stdlib `urllib`; one redundant adapter
+  mapping was removed; no provider SDK, compatibility layer, background work, or later-feature scaffold was added.
+- Tests: Catalog/capability and strict loader validation; environment/session precedence; credential
+  deduplication, redaction, no-write behavior, and clearing; four-provider connection success/failure
+  contracts; health readiness; Settings dialog and page AppTests.
+- Verification: `uv lock --check = PASS`; `uv sync --locked = PASS`;
+  `uv run ruff check . = PASS`; `uv run ruff format --check . = PASS (41 files)`;
+  `uv run mypy src = PASS (29 source files)`; `uv run pytest -q = PASS (22 passed)`;
+  `uv run python -m compileall -q src = PASS`; `scripts/smoke-ui.ps1 = PASS`.
+- Graphify after: `NOT_RUN` — query-only boundary; the canonical graph was preserved because the
+  staged Graphify 0.9.32 refresh candidate failed the zero-orphan relationship gate.
+- Documentation: `README.md`, `coding-agent-context/layout.md`,
+  `coding-agent-context/project-overview.md`, and this tracker synchronized.
+- Follow-up/blocker: `F-003` is the next explicitly declared READY feature; no blocker.
 - Git: `Human-owned`
 
 ---

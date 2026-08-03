@@ -1,0 +1,22 @@
+{
+  "reasoning": {
+    "provider": "openai",
+    "model": "gpt-5.6"
+  },
+  "embedding": {
+    "provider": "openai",
+    "model": "text-embedding-3-small"
+  },
+  "reranking": {
+    "provider": "hugging_face",
+    "model": "BAAI/bge-reranker-base"
+  },
+  "reranker_revision": "main",
+  "reranker_device": "auto",
+  "reranker_offline_mode": false,
+  "azure_endpoint": null,
+  "document_root": "documents/inbox",
+  "generated_root": "generated",
+  "runtime_root": "runtime",
+  "connection_timeout_seconds": 10
+}

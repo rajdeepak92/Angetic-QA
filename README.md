@@ -39,6 +39,19 @@ Open <http://127.0.0.1:8501>. The equivalent direct command is:
 uv run streamlit run src/multi_agentic_graph_rag/ui/app.py
 ```
 
+## Configure providers
+
+`config.json` contains only validated non-secret defaults. Optional OS environment overrides are
+listed in `.env.example`; the application intentionally does not read a local `.env` file.
+
+Open **Settings** to select approved reasoning, embedding, and reranking models. Applying settings
+prompts once for each missing unique provider credential. Credentials are password inputs held only
+in Streamlit Session State and can be cleared explicitly. **Test connections** performs bounded,
+user-triggered provider checks and shows only sanitized status and latency.
+
+Open **System Health** to inspect Python, Streamlit, local directory, reranker-cache, selected-provider,
+and last connection-check readiness. PostgreSQL, Neo4j, and Chroma checks begin with F-003.
+
 ## Verify
 
 ```powershell

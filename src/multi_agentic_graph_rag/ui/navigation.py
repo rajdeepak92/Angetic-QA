@@ -14,7 +14,7 @@ def run_navigation(context: AppContext) -> None:
     """Render and run the four-page product navigation."""
     pages = [
         st.Page(
-            workbench.render,
+            partial(workbench.render, context),
             title="Workbench",
             icon=":material/work:",
             url_path="workbench",

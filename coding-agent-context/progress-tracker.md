@@ -9,11 +9,11 @@
 | Field | Value |
 |---|---|
 | Build mode | `GREENFIELD / WINDOWS / LOCAL UI` |
-| Product features | `3 / 11 DONE` |
-| Current feature | `F-004 READY` |
+| Product features | `4 / 11 DONE` |
+| Current feature | `F-005 READY` |
 | Application entrypoint | `src/multi_agentic_graph_rag/ui/app.py` |
-| Last record | `CHG-003` |
-| Updated | `2026-08-04T19:29:05+05:30` |
+| Last record | `CHG-004` |
+| Updated | `2026-08-05T03:34:07+05:30` |
 
 Update this snapshot only after appending a record; never rewrite history to match the snapshot.
 
@@ -166,6 +166,50 @@ Update this snapshot only after appending a record; never rewrite history to mat
 - Documentation: `README.md`, `coding-agent-context/project-architecture-stack.md`,
   `coding-agent-context/project-overview.md`, and this tracker synchronized.
 - Follow-up/blocker: `F-004` is the next explicitly declared READY feature; no blocker.
+- Git: `Human-owned`
+
+---
+
+## CHG-004 — F-004: deterministic command surface, run snapshot, and truthful UI
+
+- Timestamp: `2026-08-05T03:34:07+05:30`
+- Result: `DONE`
+- Request: Implement deterministic chat-command parsing, document-root path policy, typed workflow
+  requests/events, run coordinator, Workbench conversation, Mermaid state diagram, status panel,
+  Runs page, and unsupported-command errors.
+- Status: `F-004 READY -> DONE`; `F-005 PLANNED -> READY`
+- Graphify before: `NOT_RUN` — query-only boundary preserved; canonical graph left untouched.
+- Files changed: `coding-agent-context/project-overview.md`, `coding-agent-context/progress-tracker.md`,
+  `src/multi_agentic_graph_rag/{bootstrap.py,services/{command_parser.py,path_policy.py,run_coordinator.py},`
+  `domain/schemas/{commands.py,sources.py},workflows/events.py,ui/{navigation.py,pages/{runs.py,workbench.py},`
+  `components/{chat_panel.py,execution_status.py,workflow_diagram.py},presenters/workflow_presenter.py,state/session.py},`
+  `tests/unit/{domain/test_workflow_events.py,services/{test_command_parser.py,test_path_policy.py,test_run_coordinator.py},ui/{test_navigation.py,test_workflow_surface.py}}`,
+  `documents/inbox/.gitkeep`.
+- UI behavior: Workbench now renders the deterministic command surface, status panel, Mermaid
+  workflow, and conversation history; Runs shows session history and filters; no ingestion,
+  retrieval, or F-005 execution is claimed.
+- Contracts/data: strict parsed-command, source-path, workflow-request, workflow-event, and run
+  snapshot models; session history is typed and non-secret.
+- Security: command parsing is deterministic; document-root containment, traversal, symlink,
+  extension, regular-file, and size checks fail explicitly; user text is never executed as shell,
+  Python, SQL, Cypher, or template input; `documents/inbox/.gitkeep` is a regular empty file with no
+  customer data.
+- Ponytail decision: reused regex, pathlib, pairwise, and native Streamlit; no later-stage scaffolding,
+  no extra dependencies, and no speculative abstraction.
+- Tests: `tests/unit/services/test_command_parser.py`,
+  `tests/unit/services/test_path_policy.py`,
+  `tests/unit/services/test_run_coordinator.py`,
+  `tests/unit/domain/test_workflow_events.py`,
+  `tests/unit/ui/test_workflow_surface.py`,
+  `tests/unit/ui/test_navigation.py`.
+- Verification: `uv lock --check = PASS`; `uv sync --locked = PASS`;
+  `uv run ruff check . = PASS`; `uv run ruff format --check . = PASS`;
+  `uv run mypy src = PASS`; `uv run pytest -q -rs = PASS (53 passed, 2 skipped)`;
+  `uv run python -m compileall -q src = PASS`; `scripts/smoke-ui.ps1 = PASS`;
+  `git diff --check = PASS`; F-004-specific test subset = PASS (27 passed).
+- Graphify after: `NOT_RUN` — query-only boundary preserved; synchronization deferred.
+- Documentation: `coding-agent-context/project-overview.md`, `coding-agent-context/progress-tracker.md`.
+- Follow-up/blocker: `F-005` is READY with no blocker.
 - Git: `Human-owned`
 
 ---

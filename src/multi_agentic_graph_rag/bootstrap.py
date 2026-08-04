@@ -17,6 +17,7 @@ from multi_agentic_graph_rag.ports.repositories import (
     ProjectionScopePort,
     RunRepositoryPort,
 )
+from multi_agentic_graph_rag.services.run_coordinator import RunCoordinator
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,6 +28,7 @@ class AppContext:
     connection_adapter: ModelConnectionPort
     run_repository: RunRepositoryPort
     projection_repositories: tuple[ProjectionScopePort, ...]
+    run_coordinator: RunCoordinator
 
     @property
     def persistence_checks(self) -> tuple[PersistenceHealthPort, ...]:
@@ -46,4 +48,5 @@ def build_app_context(config_path: Path = Path("config.json")) -> AppContext:
             Neo4jProjectionRepository(settings.persistence, credentials),
             ChromaProjectionRepository(settings.persistence),
         ),
+        run_coordinator=RunCoordinator(),
     )

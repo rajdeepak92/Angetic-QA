@@ -21,7 +21,7 @@ def test_app_default_page_renders_workbench() -> None:
 @pytest.mark.parametrize(
     ("module", "title", "needs_context"),
     [
-        ("workbench", "Workbench", False),
+        ("workbench", "Workbench", True),
         ("runs", "Runs", False),
         ("settings", "Settings", True),
         ("health", "System Health", True),

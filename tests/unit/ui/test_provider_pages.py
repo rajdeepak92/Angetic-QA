@@ -96,7 +96,7 @@ render(build_app_context())
 
     assert not app.exception
     assert app.title[0].value == "System Health"
-    assert any("F-003" in item.value for item in app.info)
+    assert any("bounded and sanitized" in item.value for item in app.caption)
 
 
 def _button(app: AppTest, label: str):

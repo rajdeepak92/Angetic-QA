@@ -105,6 +105,7 @@ def render_provider_selectors(current: AppSettings) -> AppSettings | None:
             generated_root=current.generated_root,
             runtime_root=current.runtime_root,
             connection_timeout_seconds=timeout_seconds,
+            persistence=current.persistence,
         )
     except (ValidationError, ValueError):
         st.error(

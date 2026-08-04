@@ -18,5 +18,15 @@
   "document_root": "documents/inbox",
   "generated_root": "generated",
   "runtime_root": "runtime",
-  "connection_timeout_seconds": 10
+  "connection_timeout_seconds": 10,
+  "persistence": {
+    "postgres_host": "127.0.0.1",
+    "postgres_port": 55432,
+    "postgres_database": "agentic_qa",
+    "postgres_user": "agentic_qa",
+    "neo4j_uri": "bolt://127.0.0.1:7687",
+    "neo4j_user": "neo4j",
+    "chroma_path": "runtime/databases/chroma",
+    "health_timeout_seconds": 5
+  }
 }

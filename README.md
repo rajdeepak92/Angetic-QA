@@ -7,8 +7,9 @@ Windows-local Streamlit shell for the Multi-Agentic QA Knowledge GraphRAG produc
 - Windows 11 and PowerShell
 - Git
 - [uv](https://docs.astral.sh/uv/)
+- Docker Desktop with Linux containers (required for PostgreSQL and Neo4j)
 
-Docker Desktop is not required until F-003. Node.js is used only by optional development-agent hooks.
+Node.js is used only by optional development-agent hooks.
 
 If uv is missing, install it with the approved Windows package:
 
@@ -50,7 +51,43 @@ in Streamlit Session State and can be cleared explicitly. **Test connections** p
 user-triggered provider checks and shows only sanitized status and latency.
 
 Open **System Health** to inspect Python, Streamlit, local directory, reranker-cache, selected-provider,
-and last connection-check readiness. PostgreSQL, Neo4j, and Chroma checks begin with F-003.
+last connection-check, PostgreSQL, Neo4j, and embedded Chroma readiness.
+
+## Start persistence services
+
+Set local database passwords in the current process, or place only the two `MAGR_*_PASSWORD` values
+in the ignored root `.env`; provider credentials are never loaded from that file. Do not write real
+values into tracked files:
+
+```powershell
+$env:MAGR_POSTGRES_PASSWORD = "<local-postgres-password>"
+$env:MAGR_NEO4J_PASSWORD = "<local-neo4j-password-at-least-8-characters>"
+.\scripts\start-infra.ps1
+```
+
+The project-scoped Compose stack starts PostgreSQL on `127.0.0.1:55432` and Neo4j on
+`127.0.0.1:7474`/`127.0.0.1:7687`, waits for health, and applies PostgreSQL migrations
+idempotently. Chroma persists locally under ignored `runtime/databases/chroma`.
+
+Check sanitized store health:
+
+```powershell
+docker compose --project-name agentic-qa --file infra/compose.yaml ps
+uv run python -c "from multi_agentic_graph_rag.bootstrap import build_app_context; print([port.check_health() for port in build_app_context().persistence_checks])"
+```
+
+Stop services without deleting data:
+
+```powershell
+.\scripts\stop-infra.ps1
+```
+
+The destructive local reset below removes only validated `agentic-qa` Compose volumes and the
+project Chroma directory. It requires the exact project confirmation and cannot be undone:
+
+```powershell
+.\scripts\stop-infra.ps1 -RemoveVolumes -ConfirmProject agentic-qa
+```
 
 ## Verify
 

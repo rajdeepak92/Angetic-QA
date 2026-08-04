@@ -35,6 +35,39 @@ class ModelSelection(BaseModel):
         return value
 
 
+class PersistenceSettings(BaseModel):
+    """Validated non-secret local store connection settings."""
+
+    model_config = STRICT_MODEL_CONFIG
+
+    postgres_host: str = Field(min_length=1, max_length=253)
+    postgres_port: int = Field(ge=1, le=65535)
+    postgres_database: str = Field(pattern=r"^[a-z][a-z0-9_]{0,62}$")
+    postgres_user: str = Field(pattern=r"^[a-z][a-z0-9_]{0,62}$")
+    neo4j_uri: str = Field(max_length=500)
+    neo4j_user: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_]{0,62}$")
+    chroma_path: Path
+    health_timeout_seconds: int = Field(ge=1, le=30)
+
+    @field_validator("neo4j_uri")
+    @classmethod
+    def require_local_bolt_uri(cls, value: str) -> str:
+        """Keep the MVP Neo4j endpoint local and credential-free."""
+        parsed = urlsplit(value)
+        if (
+            parsed.scheme not in {"bolt", "neo4j"}
+            or parsed.hostname not in {"127.0.0.1", "localhost"}
+            or parsed.port is None
+            or parsed.username
+            or parsed.password
+            or parsed.path not in {"", "/"}
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError("Neo4j URI must be a credential-free local Bolt URI.")
+        return value
+
+
 class AppSettings(BaseModel):
     """Validated non-secret settings resolved for one application session."""
 
@@ -51,6 +84,7 @@ class AppSettings(BaseModel):
     generated_root: Path
     runtime_root: Path
     connection_timeout_seconds: int = Field(ge=1, le=60)
+    persistence: PersistenceSettings
 
     @field_validator("reranker_revision")
     @classmethod
@@ -127,6 +161,15 @@ class CredentialBundle(BaseModel):
         return CredentialBundle(
             credentials=tuple(sorted((*kept, replacement), key=lambda item: item.provider.value))
         )
+
+
+class PersistenceCredentials(BaseModel):
+    """Store credentials loaded only from the process environment."""
+
+    model_config = STRICT_MODEL_CONFIG
+
+    postgres_password: SecretStr | None = None
+    neo4j_password: SecretStr | None = None
 
 
 def _validate_azure_endpoint(endpoint: str | None) -> None:

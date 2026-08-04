@@ -1,0 +1,58 @@
+"""Typed ports for canonical and rebuildable persistence."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Protocol
+
+from multi_agentic_graph_rag.domain.identifiers import UUID7
+from multi_agentic_graph_rag.domain.schemas.runs import ProjectionScope, ProjectRecord, RunRecord
+
+
+@dataclass(frozen=True, slots=True)
+class StoreHealth:
+    """Sanitized bounded store-health result."""
+
+    name: str
+    is_ready: bool
+    detail: str
+
+
+class PersistenceHealthPort(Protocol):
+    """Report readiness without exposing credentials or vendor errors."""
+
+    def check_health(self) -> StoreHealth:
+        """Return one sanitized health result."""
+        ...
+
+
+class RunRepositoryPort(PersistenceHealthPort, Protocol):
+    """Canonical PostgreSQL project and run persistence."""
+
+    def initialize_schema(self) -> None:
+        """Apply every pending immutable migration idempotently."""
+        ...
+
+    def save_project(self, project: ProjectRecord) -> None:
+        """Persist a canonical project."""
+        ...
+
+    def save_run(self, run: RunRecord) -> None:
+        """Persist current canonical state for one project-scoped run."""
+        ...
+
+    def get_run(self, *, project_id: UUID7, run_id: UUID7) -> RunRecord:
+        """Read one run only within its explicit project boundary."""
+        ...
+
+
+class ProjectionScopePort(PersistenceHealthPort, Protocol):
+    """Persist rebuildable project projection metadata."""
+
+    def ensure_scope(self, scope: ProjectionScope) -> ProjectionScope:
+        """Idempotently create or refresh one project projection scope."""
+        ...
+
+    def get_scope(self, *, project_id: UUID7) -> ProjectionScope:
+        """Read projection metadata for one explicit project."""
+        ...

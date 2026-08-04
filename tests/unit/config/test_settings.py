@@ -8,7 +8,11 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from multi_agentic_graph_rag.config.loader import load_environment_credentials, load_settings
+from multi_agentic_graph_rag.config.loader import (
+    load_environment_credentials,
+    load_persistence_credentials,
+    load_settings,
+)
 from multi_agentic_graph_rag.config.model_catalog import providers_for
 from multi_agentic_graph_rag.config.settings import AppSettings, ModelSelection
 from multi_agentic_graph_rag.domain.enums import Capability, Provider
@@ -90,3 +94,30 @@ def test_environment_credentials_are_redacted_and_never_written(
     assert bundle.secret_for(Provider.OPENAI) is not None
     assert secret not in repr(bundle)
     assert list(tmp_path.iterdir()) == []
+
+
+def test_persistence_configuration_uses_local_55432_and_redacted_passwords() -> None:
+    """Store endpoints remain local while passwords stay outside tracked settings."""
+    settings = load_settings(CONFIG_PATH, environment={})
+    secret = "database-test-secret"
+    credentials = load_persistence_credentials(
+        {
+            "MAGR_POSTGRES_PASSWORD": secret,
+            "MAGR_NEO4J_PASSWORD": secret,
+        }
+    )
+
+    assert settings.persistence.postgres_port == 55432
+    assert settings.persistence.neo4j_uri == "bolt://127.0.0.1:7687"
+    assert secret not in repr(credentials)
+    with pytest.raises(ValueError, match="local Bolt URI"):
+        type(settings.persistence)(
+            **{
+                name: (
+                    "bolt://remote.example:7687"
+                    if name == "neo4j_uri"
+                    else getattr(settings.persistence, name)
+                )
+                for name in type(settings.persistence).model_fields
+            }
+        )

@@ -9,11 +9,11 @@
 | Field | Value |
 |---|---|
 | Build mode | `GREENFIELD / WINDOWS / LOCAL UI` |
-| Product features | `2 / 11 DONE` |
-| Current feature | `F-003 READY` |
+| Product features | `3 / 11 DONE` |
+| Current feature | `F-004 READY` |
 | Application entrypoint | `src/multi_agentic_graph_rag/ui/app.py` |
-| Last record | `CHG-002` |
-| Updated | `2026-08-04T04:37:43+05:30` |
+| Last record | `CHG-003` |
+| Updated | `2026-08-04T19:29:05+05:30` |
 
 Update this snapshot only after appending a record; never rewrite history to match the snapshot.
 
@@ -121,6 +121,51 @@ Update this snapshot only after appending a record; never rewrite history to mat
 - Documentation: `README.md`, `coding-agent-context/layout.md`,
   `coding-agent-context/project-overview.md`, and this tracker synchronized.
 - Follow-up/blocker: `F-003` is the next explicitly declared READY feature; no blocker.
+- Git: `Human-owned`
+
+---
+
+## CHG-003 — F-003: infrastructure and persistence baseline
+
+- Timestamp: `2026-08-04T19:29:05+05:30`
+- Result: `DONE`
+- Request: Implement domain/run contracts, deterministic identities/checksums, classified errors,
+  canonical PostgreSQL, rebuildable Neo4j/Chroma projections, typed adapters, Compose infrastructure,
+  idempotent schema setup, bounded health, confirmed reset safety, and System Health integration.
+- Status: `F-003 READY -> DONE`; `F-004 PLANNED -> READY`
+- Graphify before: Read-only query for the F-003 contract, dependencies, persistence ownership,
+  infrastructure, schema, health, reset, tests, and owned files; every result was verified physically.
+- Files changed: `.env.example`, `config.json`, `README.md`, `pyproject.toml`, `uv.lock`,
+  `infra/compose.yaml`, `scripts/{start-infra,stop-infra,smoke-ui}.ps1`,
+  `src/multi_agentic_graph_rag/{bootstrap.py,config/,domain/,ports/repositories.py,services/system_health.py}`,
+  `src/multi_agentic_graph_rag/adapters/persistence/`, `src/multi_agentic_graph_rag/ui/`,
+  `tests/{unit/domain,unit/config,unit/services,unit/ui,contract/persistence,integration}/`,
+  `coding-agent-context/{project-architecture-stack,project-overview,progress-tracker}.md`.
+- UI behavior: System Health now renders sanitized PostgreSQL, Neo4j, and embedded Chroma readiness
+  through typed health ports; provider/configuration behavior remains unchanged.
+- Contracts/data: Strict UUIDv7 project/run/projection models, canonical UTF-8 JSON SHA-256,
+  classified failures, PostgreSQL `agentic_qa` schema with immutable migration checksums, and
+  rebuildable Neo4j/Chroma project-scope metadata; PostgreSQL remains canonical.
+- Security: Store passwords load only from environment into redacted values; SQL/Cypher is
+  parameterized; health failures are bounded/sanitized; host PostgreSQL uses 55432; destructive reset
+  requires exact project confirmation plus volume-label and Chroma-path validation.
+- Ponytail decision: Kept only F-003 projection-scope metadata, reused native Compose health/wait and
+  standard SHA-256/JSON, removed unrequested container restart policies, and added no F-004+ behavior.
+- Tests: Deterministic known-vector/validation tests; strict run/error tests; Chroma contract;
+  Docker PostgreSQL migration/readback/isolation and Neo4j scope/readback/isolation; denied reset;
+  System Health/UI integration; all Docker-backed tests ran without skips in the completion suite.
+- Verification: `uv lock --check = PASS`; `uv sync --locked = PASS`;
+  `uv run ruff check . = PASS`; `uv run ruff format --check . = PASS (56 files)`;
+  `uv run mypy src = PASS (38 source files)`; `uv run pytest -q = PASS (33 passed, 0 skipped)`;
+  `uv run python -m compileall -q src = PASS`; `scripts/smoke-ui.ps1 = PASS`;
+  `git diff --check = PASS`; Compose config/start/health = PASS; persistence Docker gates = PASS
+  (4 passed); PostgreSQL migration ledger = PASS (two ordered migrations, 64-character checksums);
+  PostgreSQL 55432, Neo4j 7474/7687, and Chroma readback = PASS; confirmation-denied reset = PASS;
+  normal shutdown preserved both named volumes and Chroma data.
+- Graphify after: `NOT_RUN` — query-only boundary; synchronization deferred and canonical graph preserved.
+- Documentation: `README.md`, `coding-agent-context/project-architecture-stack.md`,
+  `coding-agent-context/project-overview.md`, and this tracker synchronized.
+- Follow-up/blocker: `F-004` is the next explicitly declared READY feature; no blocker.
 - Git: `Human-owned`
 
 ---

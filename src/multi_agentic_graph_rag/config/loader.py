@@ -12,6 +12,8 @@ from multi_agentic_graph_rag.config.settings import (
     AppSettings,
     CredentialBundle,
     ModelSelection,
+    PersistenceCredentials,
+    PersistenceSettings,
     ProviderCredential,
 )
 from multi_agentic_graph_rag.domain.enums import Provider, RerankerDevice
@@ -78,6 +80,23 @@ def load_settings(
         connection_timeout_seconds=_integer(
             values.get("MAGR_CONNECTION_TIMEOUT_SECONDS"), base.connection_timeout_seconds
         ),
+        persistence=PersistenceSettings(
+            postgres_host=values.get("MAGR_POSTGRES_HOST", base.persistence.postgres_host),
+            postgres_port=_integer(
+                values.get("MAGR_POSTGRES_PORT"), base.persistence.postgres_port
+            ),
+            postgres_database=values.get(
+                "MAGR_POSTGRES_DATABASE", base.persistence.postgres_database
+            ),
+            postgres_user=values.get("MAGR_POSTGRES_USER", base.persistence.postgres_user),
+            neo4j_uri=values.get("MAGR_NEO4J_URI", base.persistence.neo4j_uri),
+            neo4j_user=values.get("MAGR_NEO4J_USER", base.persistence.neo4j_user),
+            chroma_path=Path(values.get("MAGR_CHROMA_PATH", str(base.persistence.chroma_path))),
+            health_timeout_seconds=_integer(
+                values.get("MAGR_STORE_HEALTH_TIMEOUT_SECONDS"),
+                base.persistence.health_timeout_seconds,
+            ),
+        ),
     )
 
 
@@ -92,6 +111,19 @@ def load_environment_credentials(
         if (secret := values.get(name))
     )
     return CredentialBundle(credentials=credentials)
+
+
+def load_persistence_credentials(
+    environment: Mapping[str, str] | None = None,
+) -> PersistenceCredentials:
+    """Load store passwords without placing them in non-secret settings."""
+    values = os.environ if environment is None else environment
+    postgres_password = values.get("MAGR_POSTGRES_PASSWORD")
+    neo4j_password = values.get("MAGR_NEO4J_PASSWORD")
+    return PersistenceCredentials(
+        postgres_password=SecretStr(postgres_password) if postgres_password else None,
+        neo4j_password=SecretStr(neo4j_password) if neo4j_password else None,
+    )
 
 
 def _provider(value: str | None, default: Provider) -> Provider:

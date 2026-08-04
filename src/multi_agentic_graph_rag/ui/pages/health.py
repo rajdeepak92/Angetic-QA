@@ -17,6 +17,7 @@ def render(context: AppContext) -> None:
         current_settings(context.default_settings),
         current_credentials(),
         connection_results(),
+        context.persistence_checks,
     )
     st.table(
         [
@@ -28,4 +29,4 @@ def render(context: AppContext) -> None:
             for check in checks
         ]
     )
-    st.info("PostgreSQL, Neo4j, and Chroma health checks begin with F-003.")
+    st.caption("Store failures are bounded and sanitized; credentials are never displayed.")

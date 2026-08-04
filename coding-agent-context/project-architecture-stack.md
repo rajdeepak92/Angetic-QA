@@ -103,6 +103,19 @@ to re-enter missing UI credentials, while the durable run remains resumable.
 | Observability | Python logging with redaction and run context | No raw secrets, prompts, responses, or customer documents. |
 | Quality | pytest, Streamlit AppTest, Ruff, mypy strict | Tests ship with each feature. |
 
+### F-003 implemented persistence baseline
+
+| Concern | Implemented contract |
+|---|---|
+| Python clients | Lock-pinned `psycopg[binary,pool] 3.3.4`, `neo4j 6.2.0`, `chromadb 1.5.9`, and `uuid-utils 0.17.0`. |
+| Containers | Official pinned `postgres:18.4-bookworm` and `neo4j:2026.06.0-community` images. |
+| Project topology | Compose project `agentic-qa`; PostgreSQL `127.0.0.1:55432 -> 5432`; Neo4j `127.0.0.1:7474/7687`; isolated `backend` network. |
+| Durable data | Compose volumes `postgres-data` and `neo4j-data`; embedded Chroma under ignored `runtime/databases/chroma`. |
+| Canonical schema | PostgreSQL schema `agentic_qa` owns projects/runs and an immutable migration checksum ledger. |
+| Projection bootstrap | Neo4j and Chroma persist only rebuildable project scope/checksum metadata until later features add allowlisted graph/vector records. |
+| Credential source | Store passwords resolve from process environment; `start-infra.ps1` may load only the two store-password names from ignored local `.env`. Provider secrets are never read from it. |
+| Reset | Normal Compose down preserves data; exact project confirmation plus label/path validation is required before volume and Chroma deletion. |
+
 Do not add Typer, FastAPI, Celery, Redis, React, LangChain wrappers, ORM, or a custom component unless
 a later accepted feature proves that the existing stack cannot meet its contract.
 

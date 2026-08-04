@@ -11,6 +11,7 @@ from pathlib import Path
 from multi_agentic_graph_rag.config.settings import AppSettings, CredentialBundle
 from multi_agentic_graph_rag.domain.enums import Capability
 from multi_agentic_graph_rag.ports.models import ConnectionCheckResult
+from multi_agentic_graph_rag.ports.repositories import PersistenceHealthPort
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,8 +27,9 @@ def system_health(
     settings: AppSettings,
     credentials: CredentialBundle,
     connection_results: tuple[ConnectionCheckResult, ...] = (),
+    persistence_checks: tuple[PersistenceHealthPort, ...] = (),
 ) -> tuple[HealthCheck, ...]:
-    """Return local and provider readiness without exposing credentials."""
+    """Return local, provider, and store readiness without exposing credentials."""
     checks = [
         HealthCheck(
             "Python",
@@ -41,6 +43,11 @@ def system_health(
         _model_cache_health(settings),
     ]
     checks.extend(_provider_health(settings, credentials, connection_results))
+    checks.extend(
+        HealthCheck(result.name, result.is_ready, result.detail)
+        for port in persistence_checks
+        for result in (port.check_health(),)
+    )
     return tuple(checks)
 
 

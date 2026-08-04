@@ -38,3 +38,36 @@ class RerankerDevice(StrEnum):
     AUTO = "auto"
     CPU = "cpu"
     CUDA = "cuda"
+
+
+class TargetStage(StrEnum):
+    """Requested final product stage for a run."""
+
+    REQUIREMENTS = "requirements"
+    USER_STORIES = "user_stories"
+    TEST_SCENARIOS = "test_scenarios"
+
+
+class RunStatus(StrEnum):
+    """Persisted lifecycle state of one run."""
+
+    PENDING = "pending"
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    BLOCKED = "blocked"
+    CANCELLED = "cancelled"
+
+
+class ErrorCategory(StrEnum):
+    """Stable failure categories used across domain and adapter boundaries."""
+
+    VALIDATION = "validation"
+    CONFLICT = "conflict"
+    NOT_FOUND = "not_found"
+    TRANSIENT_PROVIDER = "transient_provider"
+    TRANSIENT_STORE = "transient_store"
+    PERMANENT_PROVIDER = "permanent_provider"
+    PERMANENT_STORE = "permanent_store"
+    INTEGRITY = "integrity"
+    CANCELLATION = "cancellation"

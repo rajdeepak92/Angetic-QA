@@ -41,6 +41,12 @@ try {
         catch [System.Net.WebException] {
             # The server is still starting; bounded polling continues until the deadline.
         }
+        catch [System.Net.Http.HttpRequestException] {
+            # PowerShell 7 wraps a refused startup connection with HttpClient exceptions.
+        }
+        catch [System.Threading.Tasks.TaskCanceledException] {
+            # A single request timed out while the bounded startup poll remains active.
+        }
 
         Start-Sleep -Milliseconds 250
     }

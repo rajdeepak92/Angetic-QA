@@ -1,0 +1,52 @@
+name: agentic-qa
+
+services:
+  postgres:
+    image: postgres:18.4-bookworm
+    environment:
+      POSTGRES_DB: agentic_qa
+      POSTGRES_USER: agentic_qa
+      POSTGRES_PASSWORD: ${MAGR_POSTGRES_PASSWORD:?Set MAGR_POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: --data-checksums
+    ports:
+      - "127.0.0.1:${MAGR_POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentic_qa -d agentic_qa"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 10s
+
+  neo4j:
+    image: neo4j:2026.06.0-community
+    environment:
+      NEO4J_AUTH: neo4j/${MAGR_NEO4J_PASSWORD:?Set MAGR_NEO4J_PASSWORD}
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+    volumes:
+      - neo4j-data:/data
+    networks:
+      - backend
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'cypher-shell -u neo4j -p "$${NEO4J_AUTH#*/}" "RETURN 1" >/dev/null 2>&1',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 30s
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  neo4j-data:

@@ -14,6 +14,7 @@ from multi_agentic_graph_rag.config.settings import (
 )
 from multi_agentic_graph_rag.domain.enums import Capability, Provider
 from multi_agentic_graph_rag.ports.models import ConnectionCheckResult
+from multi_agentic_graph_rag.ports.repositories import StoreHealth
 from multi_agentic_graph_rag.services.system_health import system_health
 
 
@@ -57,3 +58,18 @@ def test_system_health_reports_local_and_provider_readiness(tmp_path: Path) -> N
     assert with_result[6].detail == "Provider returned HTTP 401."
     assert with_result[7].is_ready
     assert "session-secret" not in repr(with_result)
+
+
+def test_system_health_includes_sanitized_persistence_ports(tmp_path: Path) -> None:
+    """Store readiness is supplied through ports without concrete client imports."""
+    settings = load_settings(Path("config.json"), environment={})
+
+    class _Store:
+        def check_health(self) -> StoreHealth:
+            return StoreHealth("PostgreSQL", False, "Store connection failed")
+
+    checks = system_health(settings, CredentialBundle(), persistence_checks=(_Store(),))
+
+    assert checks[-1].name == "PostgreSQL"
+    assert not checks[-1].is_ready
+    assert checks[-1].detail == "Store connection failed"

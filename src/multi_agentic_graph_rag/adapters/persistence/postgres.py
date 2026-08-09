@@ -9,6 +9,7 @@ from pathlib import Path
 
 import psycopg
 from psycopg import Connection
+from psycopg.types.json import Jsonb
 
 from multi_agentic_graph_rag.config.settings import (
     PersistenceCredentials,
@@ -22,11 +23,13 @@ from multi_agentic_graph_rag.domain.errors import (
     StoreTransientError,
 )
 from multi_agentic_graph_rag.domain.identifiers import UUID7, checksum_bytes
+from multi_agentic_graph_rag.domain.schemas.artifacts import CanonicalChunks
 from multi_agentic_graph_rag.domain.schemas.runs import (
     ProjectRecord,
     RunFailure,
     RunRecord,
 )
+from multi_agentic_graph_rag.domain.schemas.sources import SourceLedger
 from multi_agentic_graph_rag.ports.repositories import StoreHealth
 
 _MIGRATIONS = Path(__file__).with_name("migrations")
@@ -170,6 +173,55 @@ class PostgresRunRepository:
             updated_at=_datetime(row[4]),
             failure=failure,
         )
+
+    def save_source_ledger(self, ledger: SourceLedger) -> None:
+        """Insert or replace one immutable source ledger in its run scope."""
+        with self._connection() as connection, connection.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO agentic_qa.sources (
+                    project_id, run_id, source_id, schema_version, source_path,
+                    extension, byte_checksum, normalized_checksum, block_count
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (project_id, run_id, source_id) DO NOTHING
+                """,
+                (
+                    ledger.project_id,
+                    ledger.run_id,
+                    ledger.source_id,
+                    ledger.schema_version,
+                    ledger.source_path,
+                    ledger.extension,
+                    ledger.byte_checksum,
+                    ledger.normalized_checksum,
+                    ledger.block_count,
+                ),
+            )
+
+    def save_chunks(self, chunks: CanonicalChunks) -> None:
+        """Insert one canonical ordered chunk set in a single transaction."""
+        with self._connection() as connection, connection.cursor() as cursor:
+            for chunk in chunks.chunks:
+                cursor.execute(
+                    """
+                    INSERT INTO agentic_qa.chunks (
+                        project_id, run_id, source_id, chunk_id, schema_version,
+                        ordinal, text, text_checksum, provenance
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (project_id, run_id, chunk_id) DO NOTHING
+                    """,
+                    (
+                        chunk.project_id,
+                        chunk.run_id,
+                        chunk.source_id,
+                        chunk.chunk_id,
+                        chunk.schema_version,
+                        chunk.ordinal,
+                        chunk.text,
+                        chunk.text_checksum,
+                        Jsonb(chunk.provenance.model_dump(mode="json")),
+                    ),
+                )
 
     def check_health(self) -> StoreHealth:
         """Run a bounded read-only PostgreSQL probe."""

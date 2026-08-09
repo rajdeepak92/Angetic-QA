@@ -12,6 +12,7 @@ from multi_agentic_graph_rag.ui.components.execution_status import (
     render_execution_status,
 )
 from multi_agentic_graph_rag.ui.components.workflow_diagram import render_workflow_diagram
+from multi_agentic_graph_rag.ui.state.credentials import current_credentials
 from multi_agentic_graph_rag.ui.state.session import (
     ConversationMessage,
     append_conversation_message,
@@ -62,6 +63,7 @@ def _submit_command(context: AppContext, command_text: str) -> None:
             command_text,
             project_id=current_project_id(),
             settings=current_settings(context.default_settings),
+            credentials=current_credentials(),
         )
     except ApplicationError as error:
         append_conversation_message(
@@ -73,10 +75,14 @@ def _submit_command(context: AppContext, command_text: str) -> None:
         ConversationMessage(
             role="assistant",
             content=(
-                "Accepted "
-                f"{run.request.target_stage.value.replace('_', ' ')} for "
+                f"Accepted {run.request.target_stage.value.replace('_', ' ')} for "
                 f"{run.request.source.resolved_path}. "
-                "Execution is blocked before ingestion until F-005; no success was faked."
+                + (
+                    "Document parsed, chunks embedded, projected to Neo4j and Chroma, and manifest written; "
+                    "later stages remain pending."
+                    if run.status.value == "running"
+                    else "Execution is blocked before ingestion; no success was faked."
+                )
             ),
         )
     )

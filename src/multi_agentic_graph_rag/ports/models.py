@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -41,4 +42,22 @@ class ModelConnectionPort(Protocol):
 
     def check(self, request: ConnectionCheckRequest) -> ConnectionCheckResult:
         """Return a bounded sanitized connection result."""
+        ...
+
+
+class EmbeddingModelPort(Protocol):
+    """Embed bounded text batches without exposing provider credentials."""
+
+    @property
+    def provider(self) -> Provider:
+        """Return the configured provider identity."""
+        ...
+
+    @property
+    def model(self) -> str:
+        """Return the configured model identity."""
+        ...
+
+    def embed(self, texts: Sequence[str]) -> tuple[tuple[float, ...], ...]:
+        """Return vectors in the exact input order."""
         ...

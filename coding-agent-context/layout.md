@@ -106,6 +106,7 @@ GraphRAG-Agents/
 │       │   ├── manifest.py
 │       │   ├── parsing.py
 │       │   ├── path_policy.py
+│       │   ├── projection.py
 │       │   ├── retrieval.py
 │       │   ├── run_coordinator.py
 │       │   ├── source_ledger.py

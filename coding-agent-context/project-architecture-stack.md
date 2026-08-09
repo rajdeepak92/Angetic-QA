@@ -112,9 +112,13 @@ to re-enter missing UI credentials, while the durable run remains resumable.
 | Project topology | Compose project `agentic-qa`; PostgreSQL `127.0.0.1:55432 -> 5432`; Neo4j `127.0.0.1:7474/7687`; isolated `backend` network. |
 | Durable data | Compose volumes `postgres-data` and `neo4j-data`; embedded Chroma under ignored `runtime/databases/chroma`. |
 | Canonical schema | PostgreSQL schema `agentic_qa` owns projects/runs and an immutable migration checksum ledger. |
-| Projection bootstrap | Neo4j and Chroma persist only rebuildable project scope/checksum metadata until later features add allowlisted graph/vector records. |
+| Projection bootstrap | F-003 established rebuildable project scope/checksum metadata; F-006 adds allowlisted project-scoped `Chunk` and embedding records with readback verification. |
 | Credential source | Store passwords resolve from process environment; `start-infra.ps1` may load only the two store-password names from ignored local `.env`. Provider secrets are never read from it. |
 | Reset | Normal Compose down preserves data; exact project confirmation plus label/path validation is required before volume and Chroma deletion. |
+
+F-006 is complete: provider embedding adapters, project/run-scoped `Chunk` and Chroma embedding
+projection methods, fingerprint/dimension readback checks, and the immutable
+`requirements/chunk_manifest.json` service passed the strict completion gate.
 
 Do not add Typer, FastAPI, Celery, Redis, React, LangChain wrappers, ORM, or a custom component unless
 a later accepted feature proves that the existing stack cannot meet its contract.

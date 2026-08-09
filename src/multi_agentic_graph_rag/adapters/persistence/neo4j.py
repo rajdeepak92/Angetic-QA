@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from contextlib import contextmanager
+from uuid import UUID
 
 from neo4j import Driver, GraphDatabase
 from neo4j.exceptions import AuthError, ConfigurationError, Neo4jError, ServiceUnavailable
@@ -18,6 +19,7 @@ from multi_agentic_graph_rag.domain.errors import (
     StoreTransientError,
 )
 from multi_agentic_graph_rag.domain.identifiers import UUID7
+from multi_agentic_graph_rag.domain.schemas.artifacts import CanonicalChunks, EmbeddingFingerprint
 from multi_agentic_graph_rag.domain.schemas.runs import ProjectionScope
 from multi_agentic_graph_rag.ports.repositories import StoreHealth
 
@@ -78,6 +80,66 @@ class Neo4jProjectionRepository:
             project_id=project_id,
             source_checksum=record["source_checksum"],
         )
+
+    def upsert_chunks(
+        self,
+        *,
+        chunks: CanonicalChunks,
+        embeddings: tuple[tuple[float, ...], ...],
+        fingerprint: EmbeddingFingerprint,
+    ) -> None:
+        """Idempotently create project-scoped Chunk nodes."""
+        if len(chunks.chunks) != len(embeddings):
+            raise ValueError("Chunk and embedding counts must match.")
+        rows = [
+            {
+                "project_id": str(chunk.project_id),
+                "run_id": str(chunk.run_id),
+                "source_id": str(chunk.source_id),
+                "chunk_id": str(chunk.chunk_id),
+                "ordinal": chunk.ordinal,
+                "text": chunk.text,
+                "text_checksum": chunk.text_checksum,
+                "embedding_fingerprint": fingerprint.fingerprint,
+                "embedding_dimension": fingerprint.dimension,
+            }
+            for chunk in chunks.chunks
+        ]
+        with self._driver() as driver, driver.session(database="neo4j") as session:
+            session.run(
+                """
+                UNWIND $rows AS row
+                MERGE (chunk:Chunk {
+                    project_id: row.project_id,
+                    chunk_id: row.chunk_id
+                })
+                SET chunk.run_id = row.run_id,
+                    chunk.source_id = row.source_id,
+                    chunk.ordinal = row.ordinal,
+                    chunk.text = row.text,
+                    chunk.text_checksum = row.text_checksum,
+                    chunk.embedding_fingerprint = row.embedding_fingerprint,
+                    chunk.embedding_dimension = row.embedding_dimension
+                """,
+                rows=rows,
+            ).consume()
+
+    def read_chunk_ids(
+        self, *, project_id: UUID7, chunk_ids: tuple[UUID7, ...]
+    ) -> tuple[UUID7, ...]:
+        """Read back only requested chunk IDs within one project."""
+        with self._driver() as driver, driver.session(database="neo4j") as session:
+            records = session.run(
+                """
+                MATCH (chunk:Chunk {project_id: $project_id})
+                WHERE chunk.chunk_id IN $chunk_ids
+                RETURN chunk.chunk_id AS chunk_id
+                ORDER BY chunk.ordinal
+                """,
+                project_id=str(project_id),
+                chunk_ids=[str(chunk_id) for chunk_id in chunk_ids],
+            )
+            return tuple(UUID(record["chunk_id"]) for record in records)
 
     def check_health(self) -> StoreHealth:
         """Run a bounded authenticated Neo4j connectivity probe."""

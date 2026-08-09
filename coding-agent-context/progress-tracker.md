@@ -9,11 +9,11 @@
 | Field | Value |
 |---|---|
 | Build mode | `GREENFIELD / WINDOWS / LOCAL UI` |
-| Product features | `4 / 11 DONE` |
-| Current feature | `F-005 READY` |
+| Product features | `5 / 11 DONE` |
+| Current feature | `F-007 READY` |
 | Application entrypoint | `src/multi_agentic_graph_rag/ui/app.py` |
-| Last record | `CHG-004` |
-| Updated | `2026-08-05T03:34:07+05:30` |
+| Last record | `CHG-006` |
+| Updated | `2026-08-10T04:36:50+05:30` |
 
 Update this snapshot only after appending a record; never rewrite history to match the snapshot.
 
@@ -214,7 +214,49 @@ Update this snapshot only after appending a record; never rewrite history to mat
 
 ---
 
+## CHG-005 — F-005: deterministic document parsing, chunking, and canonical persistence
+
+- Timestamp: `2026-08-10T03:44:31+05:30`
+- Result: `DONE`
+- Request: Parse PDF/DOCX deterministically, normalize content, build the source ledger and bounded chunks, and persist canonical chunk records.
+- Status: `F-005 READY -> DONE`; `F-006 PLANNED -> READY`
+- Graphify before: `query` — canonical graph queried in read-only mode for F-005 dependencies, owners, deterministic identity rules, and PostgreSQL scope.
+- Files changed: `pyproject.toml`, `uv.lock`, `coding-agent-context/project-overview.md`, `src/multi_agentic_graph_rag/{domain/schemas/{sources.py,artifacts.py},ports/{documents.py,repositories.py},adapters/documents/{pdf_reader.py,docx_reader.py},adapters/persistence/{postgres.py,migrations/0003_sources_chunks.sql},services/{parsing.py,chunking.py,ingestion.py,run_coordinator.py},bootstrap.py,ui/pages/workbench.py}`, `tests/unit/services/test_chunking.py`, `tests/contract/documents/test_readers.py`.
+- UI behavior: Wired runs parse and persist validated documents, emit successful ingest progress with chunk count, and leave later stages pending; unwired coordinators remain truthfully blocked.
+- Contracts/data: Strict `SourceLedger`, `CanonicalChunk`, `CanonicalChunks`, and provenance schemas; PyMuPDF/python-docx adapters; PostgreSQL project/run-scoped sources and chunks migration with immutable idempotent inserts.
+- Security: Existing document-root validation remains the read boundary; SQL is parameterized; chunks and provenance are project/run scoped; no credentials or raw documents are logged.
+- Ponytail decision: Reused existing UUIDv7/SHA-256/canonical JSON helpers, stdlib normalization/chunking, two approved parser dependencies, and one injected reader port; no third-party chunker or future-stage scaffolding.
+- Tests: Deterministic chunk ID/order/checksum and bound failure tests; PDF page and DOCX paragraph provenance contract tests; full suite passed with two Docker-dependent integration skips.
+- Verification: `uv lock --check = PASS`; `uv sync --locked = PASS`; `uv run ruff check . = PASS`; `uv run ruff format --check . = PASS`; `uv run mypy src = PASS`; `uv run pytest -q = PASS (57 passed, 2 skipped; Docker credentials unavailable)`; `uv run python -m compileall -q src = PASS`.
+- Graphify after: `NOT_RUN` — query-only boundary; no Graphify mutation.
+- Documentation: `coding-agent-context/project-overview.md`, `coding-agent-context/progress-tracker.md`.
+- Follow-up/blocker: `F-006` is READY; embedding and projection work remains.
+- Git: `Human-owned`
+
+---
+
 <!-- Insert each new record immediately above this template; leave the template last. -->
+
+## CHG-006 — F-006: embedding and projection completion
+
+- Timestamp: `2026-08-10T04:36:50+05:30`
+- Result: `DONE`
+- Request: Implement Stage 1.1b embedding, Neo4j and Chroma projections, readback verification, and the immutable chunk manifest.
+- Status: `F-006 IN_PROGRESS -> DONE`; `F-007 PLANNED -> READY`
+- Graphify before: `query` — F-006 dependencies, projection owners, fingerprint constraints, and manifest structure queried from the canonical graph.
+- Files changed: `pyproject.toml`, `uv.lock`, `src/multi_agentic_graph_rag/{domain/schemas/artifacts.py,ports/{models.py,repositories.py},adapters/models/{openai.py,gemini.py},adapters/persistence/{neo4j.py,chroma.py},services/projection.py}`, `tests/unit/services/test_projection.py`, `tests/contract/persistence/test_chunk_projections.py`, plus the three synchronized context files.
+- UI behavior: Wired runs now report document parsing, embedding, Neo4j/Chroma projection, readback, and manifest publication while later stages remain pending.
+- Contracts/data: Added embedding port, provider adapter seams, manifest schema, project/fingerprint-bounded Chroma metadata, Neo4j `Chunk` upsert/readback, and manifest publication code.
+- Security: Provider keys remain adapter-local `SecretStr` values and are not returned by the embedding port or placed in workflow state; project boundaries are checked in projection metadata/readback.
+- Ponytail decision: Reused existing model settings, persistence adapters, canonical identifiers, and strict schema configuration; added no third-party chunking or projection framework.
+- Tests: Added deterministic fake-model projection/manifest coverage, coordinator event coverage, and Chroma fingerprint/readback contract coverage.
+- Verification: `uv lock --check = PASS`; `uv sync --locked = PASS`; `uv run ruff check . = PASS`; `uv run ruff format --check . = PASS`; `uv run mypy src = PASS`; `uv run pytest -q = PASS (60 passed, 2 skipped; Docker credentials unavailable)`; `uv run python -m compileall -q src = PASS`.
+- Graphify after: `graphify update . = PASS` — code-only graph rebuilt to 836 nodes, 1,916 edges, and 63 communities; semantic documentation update was not run because no LLM key is configured.
+- Documentation: Synchronized `project-overview.md`, `project-architecture-stack.md`, `layout.md`, and this tracker; `ai-workflow-rules.md` and `coding-standard.md` already matched the current constraints.
+- Follow-up/blocker: `F-007` is READY; no F-006 blocker remains.
+- Git: `Human-owned`
+
+---
 
 ## CHG-### — F-###: concise change title
 
